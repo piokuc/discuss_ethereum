@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <% include ../partials/header.ejs %>
+</head>
+
+<body>
+
+  <% include ../partials/nav.ejs %>
+
+<div class="jumbotron text-center">
+  <div class="container">
+    <a href="/" class="lang-logo">
+      <img src="/lang-logo.png">
+    </a>
+    <h1>Discuss Ethereum transactions</h1>
+
+    <p></p>
+
+  <div id="here_table">
+    <table id="txns_table" class="display" style="width:100%">
+        <thead>
+            <tr>
+                <th>date</th>
+                <th>time</th>
+                <th>blockNumber</th>
+                <th>from</th>
+                <th>to</th>
+                <th>value</th>
+                <th>gas</th>
+                <th>gasPrice</th>
+            </tr>
+        </thead>
+        <tbody/>
+    </table>
+  </div>
+
+
+    <script>
+        $(document).ready(function() {
+            var lastTimestamp = <%- Math.max.apply(Math, transactions.map(function(o) { return o.timestamp; })) %>;
+
+            $('#txns_table').DataTable({
+                data: <%- JSON.stringify(transactions); %>,
+                order: [[ 1, "desc" ]],
+                columns: [
+                    { data: 'date' },
+                    { data: 'time' },
+                    { data: 'blockNumber' },
+                    { data: 'from' },
+                    { data: 'to' },
+                    { data: 'value' },
+                    { data: 'gas' },
+                    { data: 'gasPrice' }
+                ]});
+
+            var table = $('#txns_table').DataTable();
+             
+            $('#txns_table tbody').on('click', 'tr', function () {
+                var data = table.row(this).data();
+                let title = $('#discussion_title');
+                title.text("Discuss transaction " + data.hash);
+
+                let ul = $('#transaction_details');
+                let fields = Object.keys(data);
+                const index = fields.indexOf('_id');
+                if (index > -1) {
+                  fields.splice(index, 1);
+                }
+                ul.empty();
+                fields.forEach( field => {
+                    ul.append("<li>" + field + ": " + data[field] + "</li>");
+                });
+                newUrl = "https://discussethereum.herokuapp.com/txn/" + data.hash;
+                resetDiscuss(data.hash, newUrl, "tx " + data.hash);
+            } );
+
+            function loadOldData() {
+               $.getJSON('/txs/0', data => {
+                    if (data.length > 0) {
+                        table.clear();
+                        $('#txns_table').dataTable().fnAddData(data);
+                    }
+                    setTimeout(loadNewData, refreshTimeout);
+               }); 
+            }
+            // A second after page is loaded with the initial bunch of rows
+            // reload the table with all historical transactions.
+            setTimeout(loadOldData, 1000);
+
+            const refreshTimeout = 60 * 1000; // check for new data every 1 minute
+
+            function loadNewData() {
+               $.getJSON('/txs/' + lastTimestamp, data => {
+                    data.forEach(tx => {
+                        if (tx.timestamp > lastTimestamp) lastTimestamp = tx.timestamp;
+                    });
+                    if (data.length > 0) {
+                        $('#txns_table').dataTable().fnAddData(data);
+                    }
+                    setTimeout(loadNewData, refreshTimeout);
+               }); 
+            }
+            setTimeout(loadNewData, refreshTimeout);
+
+        });
+
+    </script>
+
+
+    <div style="text-align:left">
+        <h3 id="discussion_title">General discussion</h3>
+        <ul id="transaction_details">
+        </ul>
+    </div>
+
+
+    <div id="disqus_thread"></div>
+    <script>
+
+    var disqus_config = function () {
+        this.page.url = "https://discussethereum.herokuapp.com/";
+        this.page.identifier = "General";
+        this.page.title= "General discussion";
+    };
+
+    (function() { // DON'T EDIT BELOW THIS LINE
+        var d = document, s = d.createElement('script');
+        s.src = 'https://ethereum-transactions.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+
+    var resetDiscuss = function (newIdentifier, newUrl, newTitle) {
+        DISQUS.reset({
+            reload: true,
+            config: function () {
+                this.page.identifier = newIdentifier;
+                this.page.url = newUrl;
+                this.page.title = newTitle;
+            }
+        });
+    };
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+  </div>
+</div>
+
+</body>
+</html>
