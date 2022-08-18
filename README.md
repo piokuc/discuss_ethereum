@@ -20,7 +20,7 @@ it may fail to load all of them into memory, so a better solution would be neede
 Frontend of the app checks for new data in the database using a simple polling mechanism,
 it is currently doing it every one minute.
 
-## The transactions database.
+## Transactions database
 
 The MongoDB database is populated with data pulled from infura.
 The script `load_transactions.js` pulls new blocks from infura
