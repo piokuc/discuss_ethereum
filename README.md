@@ -13,7 +13,7 @@ The app uses jQuery DataTables to display data loaded from a MongoDB instance.
 When the app is loaded it first loads latest 100 transactions from the database.
 One second later it reloads the table with all historical transactions.
 The idea is to show the page to the user as quickly as possible with small amount of data,
-then load rest of it in the background. 
+then load the rest of it in the background. 
 This is very simple but obviously once the number of transactions in the database grows
 it may fail to load all of them into memory, so a better solution would be needed in production.
 
@@ -32,9 +32,9 @@ The transactions objects retrieved from infura are enriched with timestamp infor
 
 ## Discussions
 
-Disqus has been used to allow users comment on specific transactions.
+Disqus has been used to allow users to comment on specific transactions.
 Once the user clicks on a row in the table details of the transaction in the row
-are displayed below the table and the Disqus plusing is reloaded
+are displayed below the table and the Disqus plugin is reloaded
 with a page id being set to the transaction's hash.
 This way there can be a different thread per each transaction.
 
